@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip3 --version)",
+      "Bash(curl -sI --max-time 30 https://data.police.uk/data/archive/latest.zip)",
+      "Bash(curl -s --max-time 30 https://data.police.uk/api/crime-last-updated)",
+      "Bash(curl -s --max-time 30 https://data.police.uk/api/crimes-street-dates)",
+      "WebFetch(domain:data.police.uk)",
+      "Bash(curl -sI --max-time 30 https://policeuk-data.s3.amazonaws.com/archive/2026-04.zip)",
+      "Bash(curl -sI --max-time 20 https://tiles.openfreemap.org/styles/positron)",
+      "Bash(curl -sI --max-time 20 https://unpkg.com/maplibre-gl/dist/maplibre-gl.js)",
+      "Bash(curl -s --max-time 60 \"https://services1.arcgis.com/ESMARspQHYMw9BZ9/ArcGIS/rest/services?f=json\")",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s --max-time 30 \"https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/LAD_MAY_2025_UK_BUC/FeatureServer/0/query?where=1%3D1&returnCountOnly=true&f=json\")",
+      "Bash(curl -s --max-time 30 \"https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/LAD_MAY_2025_UK_BUC/FeatureServer/0?f=json\")",
+      "WebFetch(domain:www.ons.gov.uk)",
+      "Bash(curl -sIL --max-time 30 \"https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/lowersuperoutputareamidyearpopulationestimatesnationalstatistics/mid2022revisednov2025tomid2024/sapelsoabroadage20222024.xlsx\")",
+      "Bash(curl -sI --max-time 20 \"https://basemaps.cartocdn.com/light_all/6/31/20.png\")"
+    ]
+  }
+}
