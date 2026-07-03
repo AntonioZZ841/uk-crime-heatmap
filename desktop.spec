@@ -12,8 +12,8 @@ hiddenimports = [
     "uvicorn.protocols.websockets.auto",
     "uvicorn.lifespan.on",
 ]
-if sys.platform == "win32":
-    hiddenimports.append("webview")  # GUI path; hooks pull in the WebView2 glue
+if sys.platform in ("win32", "darwin"):
+    hiddenimports.append("webview")  # GUI path; hooks pull in WebView2 / WKWebView glue
 
 a = Analysis(
     ["desktop.py"],
@@ -40,3 +40,14 @@ coll = COLLECT(
     a.datas,
     name="uk-crime-heatmap",
 )
+
+if sys.platform == "darwin":
+    app = BUNDLE(
+        coll,
+        name="UK Crime Heatmap.app",
+        bundle_identifier="uk.crime-heatmap.desktop",
+        info_plist={
+            "NSHighResolutionCapable": True,
+            "LSMinimumSystemVersion": "12.0",
+        },
+    )

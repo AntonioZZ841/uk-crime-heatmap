@@ -1,0 +1,154 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      mini:
+        description: "Build with mini dataset (fast workflow test)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  # Build the database once on the fastest runner; DuckDB files are portable,
+  # so Windows and macOS bundles ship byte-identical data.
+  dataset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Build dataset (downloads crime data, boundaries, population)
+        env:
+          MINI_MODE: ${{ (github.event_name == 'workflow_dispatch' && inputs.mini) && '1' || '0' }}
+        run: python pipeline/run_all.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dataset
+          path: data/crime.duckdb
+          compression-level: 3
+
+  build:
+    needs: dataset
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            asset: uk-crime-heatmap-windows-x64.zip
+            exe: dist/uk-crime-heatmap/uk-crime-heatmap.exe
+          - os: macos-latest
+            asset: uk-crime-heatmap-macos-arm64.zip
+            exe: "dist/UK Crime Heatmap.app/Contents/MacOS/uk-crime-heatmap"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt -r requirements-desktop.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: dataset
+          path: data
+      - name: Freeze desktop app
+        run: pyinstaller desktop.spec --noconfirm
+
+      - name: Smoke test frozen app (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:CRIME_DESKTOP_NOGUI = "1"
+          $env:CRIME_DESKTOP_PORT = "8123"
+          $p = Start-Process -FilePath "${{ matrix.exe }}" -PassThru
+          $ok = $false
+          foreach ($i in 1..60) {
+            try {
+              $r = Invoke-RestMethod "http://127.0.0.1:8123/healthz" -TimeoutSec 2
+              if ($r.ok) { $ok = $true; break }
+            } catch { Start-Sleep -Seconds 2 }
+          }
+          if (-not $ok) {
+            if ($p.HasExited) { Write-Host "process already exited with code $($p.ExitCode)" }
+            else { Write-Host "process alive but not serving"; Stop-Process -Id $p.Id -Force }
+            Write-Error "server never became healthy"; exit 1
+          }
+          $meta = Invoke-RestMethod "http://127.0.0.1:8123/api/meta"
+          Write-Host "period $($meta.period.from) -> $($meta.period.to), total crimes: $($meta.total_crimes)"
+          $region = Invoke-RestMethod "http://127.0.0.1:8123/api/region/lad/E09000007"
+          Write-Host "Camden clusters: $($region.clusters.Count)"
+          Stop-Process -Id $p.Id -Force
+          if ($meta.total_crimes -lt 1000) { Write-Error "implausibly few crimes"; exit 1 }
+          if ($region.clusters.Count -lt 5) { Write-Error "dashboard clusters missing"; exit 1 }
+
+      - name: Smoke test frozen app (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          CRIME_DESKTOP_NOGUI=1 CRIME_DESKTOP_PORT=8123 "${{ matrix.exe }}" &
+          PID=$!
+          ok=0
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:8123/healthz > /dev/null; then ok=1; break; fi
+            if ! kill -0 $PID 2>/dev/null; then echo "process exited early"; break; fi
+            sleep 2
+          done
+          if [ "$ok" != "1" ]; then echo "server never became healthy"; kill $PID 2>/dev/null; exit 1; fi
+          meta=$(curl -s http://127.0.0.1:8123/api/meta)
+          crimes=$(echo "$meta" | python3 -c "import json,sys; print(json.load(sys.stdin)['total_crimes'])")
+          clusters=$(curl -s http://127.0.0.1:8123/api/region/lad/E09000007 | python3 -c "import json,sys; print(len(json.load(sys.stdin)['clusters']))")
+          echo "total crimes: $crimes, Camden clusters: $clusters"
+          kill $PID
+          [ "$crimes" -ge 1000 ] || { echo "implausibly few crimes"; exit 1; }
+          [ "$clusters" -ge 5 ] || { echo "dashboard clusters missing"; exit 1; }
+
+      - name: Package zip (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path dist/uk-crime-heatmap -DestinationPath ${{ matrix.asset }}
+      - name: Package zip (macOS)
+        if: runner.os == 'macOS'
+        run: ditto -c -k --keepParent "dist/UK Crime Heatmap.app" "${{ matrix.asset }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+          compression-level: 0
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "uk-crime-heatmap-*"
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: uk-crime-heatmap-*.zip
+          generate_release_notes: true
+          body: |
+            **Windows** — unzip `uk-crime-heatmap-windows-x64.zip`, run
+            `uk-crime-heatmap/uk-crime-heatmap.exe`. SmartScreen will warn (unsigned):
+            *More info → Run anyway*. Needs the Edge WebView2 Runtime (preinstalled on
+            up-to-date Windows 10/11).
+
+            **macOS (Apple Silicon, macOS 12+)** — unzip `uk-crime-heatmap-macos-arm64.zip`,
+            move `UK Crime Heatmap.app` wherever you like. The app is unsigned, so the
+            first launch is blocked: either right-click → Open, or if that's refused go to
+            **System Settings → Privacy & Security → "Open Anyway"** (or run
+            `xattr -cr "UK Crime Heatmap.app"` once). Intel Macs are not supported by
+            this build.
+
+            Both apps bundle the full 12-month crime database; internet is only needed
+            for the basemap tiles.

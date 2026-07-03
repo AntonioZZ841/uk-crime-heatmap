@@ -29,17 +29,24 @@ make serve
 
 Rebuilding the database requires the server to be stopped (single-writer rule).
 
-## Desktop app (Windows)
+## Desktop app (Windows & macOS)
 
-Grab `uk-crime-heatmap-windows-x64.zip` from the
-[latest release](https://github.com/AntonioZZ841/uk-crime-heatmap/releases/latest),
-unzip, and run `uk-crime-heatmap/uk-crime-heatmap.exe`. No Python needed — the
-12-month database is bundled (internet still required for basemap tiles; uses the
-Edge WebView2 runtime preinstalled on current Windows).
+Grab the zip for your OS from the
+[latest release](https://github.com/AntonioZZ841/uk-crime-heatmap/releases/latest) —
+no Python needed, the 12-month database is bundled (internet still required for
+basemap tiles):
 
-Releases are built by CI on every `v*` tag ([workflow](.github/workflows/release-windows.yml)):
-the dataset is rebuilt from source, frozen with PyInstaller, smoke-tested headlessly,
-zipped, and attached to the release. Build locally with:
+- **Windows**: `uk-crime-heatmap-windows-x64.zip` → run `uk-crime-heatmap/uk-crime-heatmap.exe`.
+  Past the SmartScreen warning: *More info → Run anyway* (unsigned binary).
+- **macOS** (Apple Silicon, macOS 12+): `uk-crime-heatmap-macos-arm64.zip` →
+  `UK Crime Heatmap.app`. First launch is Gatekeeper-blocked (unsigned): right-click →
+  Open, or **System Settings → Privacy & Security → "Open Anyway"**, or
+  `xattr -cr "UK Crime Heatmap.app"`. Intel Macs aren't covered by this build.
+
+Releases are built by CI on every `v*` tag ([workflow](.github/workflows/release.yml)):
+the dataset is built once from source on Linux, then Windows/macOS apps are frozen in
+parallel with PyInstaller from the same database, smoke-tested headlessly, and attached
+to the release. Build locally with:
 
 ```bash
 pip install -r requirements-desktop.txt
