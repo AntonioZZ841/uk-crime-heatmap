@@ -105,15 +105,23 @@ App.initMap = function (meta) {
           id: "crime-heat", type: "heatmap", source: "points", minzoom: meta.heatmap_min_zoom,
           paint: {
             "heatmap-weight": ["interpolate", ["linear"], ["get", "w"], 0.5, 0.15, 10, 1],
-            "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 13, 0.65, 17, 1.6],
-            "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 13, 14, 17, 36],
+            "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 13, 0.55, 17, 1.3],
+            "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 13, 15, 17, 36],
+            // Inferno-style ramp, deliberately a DIFFERENT family from the
+            // blue->red choropleth so epicentres contrast against both ends;
+            // alpha graded in the ramp: transparent fringe, near-opaque amber
+            // core that only genuinely dense clusters reach.
             "heatmap-color": [
               "interpolate", ["linear"], ["heatmap-density"],
-              0, "rgba(33,102,172,0)",
-              0.15, "#4393c3", 0.35, "#92c5de", 0.55, "#fddbc7",
-              0.75, "#f4a582", 0.9, "#d6604d", 1, "#b2182b",
+              0, "rgba(0,0,0,0)",
+              0.2, "rgba(70,20,110,0.25)",
+              0.45, "rgba(150,35,120,0.50)",
+              0.65, "rgba(210,70,70,0.70)",
+              0.82, "rgba(240,120,35,0.88)",
+              0.94, "rgba(252,180,40,0.96)",
+              1, "rgba(253,225,120,1)",
             ],
-            "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0.55, 14.5, 0.45, 16, 0.3],
+            "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0.9, 16, 0.75],
           },
         },
         before

@@ -19,6 +19,7 @@ App.initLegend = function (meta) {
     <div class="chips">
       <span class="chip"><i style="background:${cs.no_data}"></i>no data</span>
       <span class="chip"><i style="background:${cs.scotland}"></i>Scotland (not published)</span>
+      <span class="chip"><i style="width:18px;background:linear-gradient(to right,rgba(70,20,110,.5),#ed6925,#fbfa9e)"></i>street hotspots (z13+)</span>
     </div>
     <div class="period">Period: ${period}</div>
     <div class="opacity-row">
