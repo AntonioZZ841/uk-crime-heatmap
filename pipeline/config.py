@@ -9,7 +9,10 @@ import json
 import os
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+# CRIME_RATE_ROOT overrides the repo root - set by desktop.py in frozen
+# (PyInstaller) builds, where frontend/ and data/ are unpacked elsewhere.
+_env_root = os.environ.get("CRIME_RATE_ROOT")
+PROJECT_ROOT = Path(_env_root) if _env_root else Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_ROOT / "data"
 RAW_DIR = DATA_DIR / "raw"
 CSV_DIR = RAW_DIR / "csv"          # extracted street CSVs, one subdir per month

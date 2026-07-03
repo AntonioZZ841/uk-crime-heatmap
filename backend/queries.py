@@ -43,12 +43,24 @@ def _collection(features: list[str]) -> str:
 
 
 @lru_cache(maxsize=1)
+def runtime_window() -> dict:
+    """Month window of the loaded build - from the DB itself (self-contained
+    desktop/cloud artifact), falling back to window.json for older builds."""
+    try:
+        months_json, mini = db.conn().execute("SELECT months, mini FROM build_meta").fetchone()
+        return {"months": json.loads(months_json), "mini": bool(mini)}
+    except Exception:
+        w = json.loads(config.WINDOW_FILE.read_text())
+        return {"months": w["months"], "mini": w.get("mini", False)}
+
+
+@lru_cache(maxsize=1)
 def meta() -> dict:
-    window = json.loads(config.WINDOW_FILE.read_text())
+    window = runtime_window()
     total, = db.conn().execute("SELECT count(*) FROM crimes").fetchone()
     return {
         "period": {"from": window["months"][0], "to": window["months"][-1],
-                   "months": len(window["months"]), "mini": window.get("mini", False)},
+                   "months": len(window["months"]), "mini": window["mini"]},
         "total_crimes": total,
         "severity": [
             {"category": c, "weight": w, "tier": t} for c, (w, t) in config.SEVERITY.items()
@@ -216,7 +228,7 @@ def region_detail(level: str, code: str) -> dict:
         "SELECT count(*) FROM agg_region WHERE level = ?", [level]
     ).fetchone()
 
-    window = config.month_window()
+    window = runtime_window()["months"]
     trend_rows = dict(db.conn().execute(
         "SELECT strftime(month, '%Y-%m'), n FROM agg_region_month WHERE level = ? AND code = ?",
         [level, code],

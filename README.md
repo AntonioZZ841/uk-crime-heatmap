@@ -29,6 +29,25 @@ make serve
 
 Rebuilding the database requires the server to be stopped (single-writer rule).
 
+## Desktop app (Windows)
+
+Grab `uk-crime-heatmap-windows-x64.zip` from the
+[latest release](https://github.com/AntonioZZ841/uk-crime-heatmap/releases/latest),
+unzip, and run `uk-crime-heatmap/uk-crime-heatmap.exe`. No Python needed — the
+12-month database is bundled (internet still required for basemap tiles; uses the
+Edge WebView2 runtime preinstalled on current Windows).
+
+Releases are built by CI on every `v*` tag ([workflow](.github/workflows/release-windows.yml)):
+the dataset is rebuilt from source, frozen with PyInstaller, smoke-tested headlessly,
+zipped, and attached to the release. Build locally with:
+
+```bash
+pip install -r requirements-desktop.txt
+pyinstaller desktop.spec        # needs data/crime.duckdb built first
+# dev run without freezing:
+python desktop.py               # opens a native window (CRIME_DESKTOP_NOGUI=1 for server only)
+```
+
 ## Data sources
 
 | What | Source |

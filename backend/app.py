@@ -1,16 +1,16 @@
 """FastAPI app: JSON/GeoJSON API + static frontend."""
 from __future__ import annotations
 
-from pathlib import Path
-
 from fastapi import FastAPI, Query, Response
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from pipeline import config as pipeline_config
+
 from . import queries
 
-FRONTEND_DIR = Path(__file__).resolve().parents[1] / "frontend"
+FRONTEND_DIR = pipeline_config.PROJECT_ROOT / "frontend"
 GEOJSON = "application/geo+json"
 CACHE = {"Cache-Control": "public, max-age=3600"}
 

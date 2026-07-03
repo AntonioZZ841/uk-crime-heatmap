@@ -1,0 +1,85 @@
+name: release-windows
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      mini:
+        description: "Build with mini dataset (fast workflow test)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-desktop.txt
+
+      - name: Build dataset (downloads crime data, boundaries, population)
+        env:
+          MINI_MODE: ${{ (github.event_name == 'workflow_dispatch' && inputs.mini) && '1' || '0' }}
+          PYTHONUTF8: "1"
+        run: python pipeline/run_all.py
+
+      - name: Freeze desktop app
+        run: pyinstaller desktop.spec --noconfirm
+
+      - name: Smoke test frozen app (headless)
+        shell: pwsh
+        run: |
+          $env:CRIME_DESKTOP_NOGUI = "1"
+          $env:CRIME_DESKTOP_PORT = "8123"
+          $p = Start-Process -FilePath "dist/uk-crime-heatmap/uk-crime-heatmap.exe" -PassThru
+          $ok = $false
+          foreach ($i in 1..60) {
+            try {
+              $r = Invoke-RestMethod "http://127.0.0.1:8123/healthz" -TimeoutSec 2
+              if ($r.ok) { $ok = $true; break }
+            } catch { Start-Sleep -Seconds 2 }
+          }
+          if (-not $ok) { Stop-Process -Id $p.Id -Force; Write-Error "server never became healthy"; exit 1 }
+          $meta = Invoke-RestMethod "http://127.0.0.1:8123/api/meta"
+          Write-Host "period $($meta.period.from) -> $($meta.period.to), total crimes: $($meta.total_crimes)"
+          $region = Invoke-RestMethod "http://127.0.0.1:8123/api/region/lad/E09000007"
+          Write-Host "Camden clusters: $($region.clusters.Count)"
+          Stop-Process -Id $p.Id -Force
+          $minCrimes = if ($env:MINI_MODE -eq "1") { 1000 } else { 1000000 }
+          if ($meta.total_crimes -lt $minCrimes) { Write-Error "implausibly few crimes"; exit 1 }
+          if ($region.clusters.Count -lt 5) { Write-Error "dashboard clusters missing"; exit 1 }
+        env:
+          MINI_MODE: ${{ (github.event_name == 'workflow_dispatch' && inputs.mini) && '1' || '0' }}
+
+      - name: Package zip
+        shell: pwsh
+        run: Compress-Archive -Path dist/uk-crime-heatmap -DestinationPath uk-crime-heatmap-windows-x64.zip
+
+      - name: Upload artifact (non-tag runs)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: uk-crime-heatmap-windows-x64
+          path: uk-crime-heatmap-windows-x64.zip
+
+      - name: Create GitHub release (tag runs)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: uk-crime-heatmap-windows-x64.zip
+          generate_release_notes: true
+          body: |
+            **Windows desktop app** — unzip `uk-crime-heatmap-windows-x64.zip` and run
+            `uk-crime-heatmap/uk-crime-heatmap.exe`. No Python required; the 12-month
+            crime database is bundled. Needs internet for the basemap tiles and the
+            Microsoft Edge WebView2 Runtime (preinstalled on up-to-date Windows 10/11).

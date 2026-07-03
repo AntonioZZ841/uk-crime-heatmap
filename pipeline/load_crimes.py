@@ -19,7 +19,7 @@ CSV_COLUMNS = """{
 
 
 def run(con: duckdb.DuckDBPyConnection) -> None:
-    glob = str(config.CSV_DIR / "*" / "*-street.csv")
+    glob = config.CSV_DIR.as_posix() + "/*/*-street.csv"  # forward slashes: works on Windows too
     con.execute(
         f"""
         CREATE OR REPLACE TABLE crimes AS

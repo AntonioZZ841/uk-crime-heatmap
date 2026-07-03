@@ -13,6 +13,8 @@ at LAD level by design).
 """
 from __future__ import annotations
 
+import json
+
 import duckdb
 
 import config
@@ -113,6 +115,11 @@ def run(con: duckdb.DuckDBPyConnection) -> None:
         for level, col in LEVEL_COLUMN.items()
     )
     con.execute(f"CREATE OR REPLACE TABLE agg_region_category AS {cat_selects}")
+
+    # bake the window into the DB so the runtime artifact is self-contained
+    # (desktop bundles and cloud deploys ship only crime.duckdb, not data/raw)
+    con.execute("CREATE OR REPLACE TABLE build_meta (months VARCHAR, mini BOOLEAN)")
+    con.execute("INSERT INTO build_meta VALUES (?, ?)", [json.dumps(months), config.MINI_MODE])
 
     counts = dict(con.execute("SELECT level, count(*) FROM agg_region GROUP BY level").fetchall())
     nodata = con.execute(
