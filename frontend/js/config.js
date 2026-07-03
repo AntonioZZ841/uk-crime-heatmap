@@ -23,10 +23,10 @@ window.App = {
   BBOX_PAD: 0.15,       // over-fetch viewport by 15% so edge polygons are ready
 
   // base fill opacity for non-hovered areas (user-tunable via legend slider).
-  // Fills render UNDER the basemap linework, so 45% stays street-legible.
+  // Fills render UNDER the basemap linework, so 55% stays street-legible.
   areaOpacity: (() => {
     const v = parseFloat(localStorage.getItem("areaOpacity"));
-    return Number.isFinite(v) ? v : 0.45;
+    return Number.isFinite(v) ? v : 0.55;
   })(),
 
   debounce(fn, ms) {
