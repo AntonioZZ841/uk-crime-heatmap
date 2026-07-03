@@ -49,7 +49,11 @@ jobs:
               if ($r.ok) { $ok = $true; break }
             } catch { Start-Sleep -Seconds 2 }
           }
-          if (-not $ok) { Stop-Process -Id $p.Id -Force; Write-Error "server never became healthy"; exit 1 }
+          if (-not $ok) {
+            if ($p.HasExited) { Write-Host "process already exited with code $($p.ExitCode)" }
+            else { Write-Host "process alive but not serving"; Stop-Process -Id $p.Id -Force }
+            Write-Error "server never became healthy"; exit 1
+          }
           $meta = Invoke-RestMethod "http://127.0.0.1:8123/api/meta"
           Write-Host "period $($meta.period.from) -> $($meta.period.to), total crimes: $($meta.total_crimes)"
           $region = Invoke-RestMethod "http://127.0.0.1:8123/api/region/lad/E09000007"

@@ -21,6 +21,13 @@ from pathlib import Path
 if getattr(sys, "frozen", False):
     # PyInstaller: bundled data (frontend/, data/crime.duckdb) lives in _MEIPASS
     os.environ["CRIME_RATE_ROOT"] = str(Path(sys._MEIPASS))
+    # Windowed (console=False) builds have no stdout/stderr; any print() or
+    # logging StreamHandler would crash with AttributeError on None. Route to
+    # devnull BEFORE uvicorn builds its logging handlers.
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, "w")
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, "w")
 
 import uvicorn
 
