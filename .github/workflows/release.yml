@@ -28,7 +28,7 @@ jobs:
       - name: Build dataset (downloads crime data, boundaries, population)
         env:
           MINI_MODE: ${{ (github.event_name == 'workflow_dispatch' && inputs.mini) && '1' || '0' }}
-        run: python pipeline/run_all.py
+        run: python -m pipeline.run_all
       - uses: actions/upload-artifact@v4
         with:
           name: dataset
