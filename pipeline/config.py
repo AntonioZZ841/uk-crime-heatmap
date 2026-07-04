@@ -7,13 +7,32 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
+
+FROZEN = getattr(sys, "frozen", False)
+
+
+def _user_data_dir() -> Path:
+    """Writable per-user location for frozen apps (the install dir may be read-only)."""
+    if sys.platform == "win32":
+        base = Path(os.environ.get("LOCALAPPDATA") or (Path.home() / "AppData" / "Local"))
+    elif sys.platform == "darwin":
+        base = Path.home() / "Library" / "Application Support"
+    else:
+        base = Path(os.environ.get("XDG_DATA_HOME") or (Path.home() / ".local" / "share"))
+    return base / "uk-crime-heatmap"
+
 
 # CRIME_RATE_ROOT overrides the repo root - set by desktop.py in frozen
 # (PyInstaller) builds, where frontend/ and data/ are unpacked elsewhere.
 _env_root = os.environ.get("CRIME_RATE_ROOT")
 PROJECT_ROOT = Path(_env_root) if _env_root else Path(__file__).resolve().parents[1]
-DATA_DIR = PROJECT_ROOT / "data"
+
+# Frozen apps read the shipped database from the bundle but write everything
+# (downloads, updated databases) to the per-user dir.
+BUNDLED_DB = PROJECT_ROOT / "data" / "crime.duckdb"
+DATA_DIR = _user_data_dir() if FROZEN else PROJECT_ROOT / "data"
 RAW_DIR = DATA_DIR / "raw"
 CSV_DIR = RAW_DIR / "csv"          # extracted street CSVs, one subdir per month
 BOUNDARY_DIR = RAW_DIR / "boundaries"
@@ -21,6 +40,16 @@ BOUNDARY_DIR = RAW_DIR / "boundaries"
 # server keeps serving the current one (DuckDB is single-writer).
 DB_PATH = Path(os.environ.get("CRIME_DB_PATH") or (DATA_DIR / "crime.duckdb"))
 WINDOW_FILE = RAW_DIR / "window.json"  # pinned month window so all stages agree
+
+
+def active_db_path() -> Path:
+    """The database to serve: a user-dir copy (from an in-app update) wins over
+    the bundled one; dev setups only ever have DB_PATH."""
+    if DB_PATH.exists():
+        return DB_PATH
+    if FROZEN and BUNDLED_DB.exists():
+        return BUNDLED_DB
+    return DB_PATH
 
 # ---------------------------------------------------------------------------
 # Crime data (data.police.uk)

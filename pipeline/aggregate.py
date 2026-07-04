@@ -17,7 +17,7 @@ import json
 
 import duckdb
 
-import config
+from . import config
 
 LEVEL_COLUMN = {"lad": "lad25cd", "ward": "wd25cd", "lsoa": "lsoa21cd"}
 

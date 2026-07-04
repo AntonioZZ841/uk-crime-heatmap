@@ -6,20 +6,15 @@ import time
 
 import duckdb
 
-import aggregate
-import assign_ni
-import config
-import load_boundaries
-import load_crimes
-import load_reference
-import verify
+from . import (aggregate, assign_ni, config, load_boundaries, load_crimes,
+               load_reference, verify)
 
 
 def main() -> None:
     skip_download = "--skip-download" in sys.argv
     t0 = time.time()
     if not skip_download:
-        import download
+        from . import download
 
         download.main()
 

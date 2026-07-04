@@ -1,8 +1,6 @@
 """FastAPI app: JSON/GeoJSON API + static frontend."""
 from __future__ import annotations
 
-import sys
-
 from fastapi import FastAPI, Query, Response
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
@@ -13,8 +11,8 @@ from pipeline import config as pipeline_config
 from . import queries, refresh
 
 FRONTEND_DIR = pipeline_config.PROJECT_ROOT / "frontend"
-# Frozen desktop builds don't ship the pipeline; they update via releases.
-REFRESH_SUPPORTED = not getattr(sys, "frozen", False)
+# Both web and desktop builds can self-update their data now.
+REFRESH_SUPPORTED = True
 GEOJSON = "application/geo+json"
 CACHE = {"Cache-Control": "public, max-age=3600"}
 
@@ -44,8 +42,6 @@ def meta():
 
 @app.post("/api/refresh")
 def refresh_start(mini: bool = Query(default=False)):
-    if not REFRESH_SUPPORTED:
-        return JSONResponse({"error": "refresh is not available in the desktop app"}, status_code=400)
     if not refresh.start(mini=mini):
         return JSONResponse({"error": "an update is already running"}, status_code=409)
     return {"started": True}

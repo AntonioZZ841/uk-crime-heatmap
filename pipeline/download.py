@@ -14,8 +14,8 @@ import sys
 
 import httpx
 
-import config
-from remotezip import RemoteZip
+from . import config
+from .remotezip import RemoteZip
 
 STREET_RE = re.compile(r"^(\d{4}-\d{2})/\1-([a-z0-9-]+)-street\.csv$")
 

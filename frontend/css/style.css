@@ -59,6 +59,17 @@ body { color: var(--ink); }
 .spin { width: 11px; height: 11px; border: 2px solid var(--line); border-top-color: var(--accent);
   border-radius: 50%; animation: spin 0.9s linear infinite; flex: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+#update-modal { position: absolute; inset: 0; z-index: 45; background: rgba(12, 24, 38, 0.45);
+  display: flex; align-items: center; justify-content: center; }
+.update-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+  max-width: 380px; padding: 20px 24px; font-size: 13px; line-height: 1.5; }
+.update-card h3 { margin: 0 0 8px; font-size: 16px; }
+.update-card p { margin: 0 0 14px; color: var(--ink); }
+.update-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.update-actions .refresh-btn { font-size: 12px; padding: 5px 14px; }
+.update-actions .primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.update-actions .primary:hover { background: #1b568f; }
 #legend .caveat { margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.35; }
 
 /* ---------- status / boot error ---------- */

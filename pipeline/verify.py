@@ -9,7 +9,7 @@ import sys
 
 import duckdb
 
-import config
+from . import config
 
 HARD_FAILURES: list[str] = []
 

@@ -85,6 +85,8 @@ jobs:
           Write-Host "period $($meta.period.from) -> $($meta.period.to), total crimes: $($meta.total_crimes)"
           $region = Invoke-RestMethod "http://127.0.0.1:8123/api/region/lad/E09000007"
           Write-Host "Camden clusters: $($region.clusters.Count)"
+          $st = Invoke-RestMethod "http://127.0.0.1:8123/api/refresh/status"
+          if (-not $st.refresh_supported) { Write-Error "in-app updater missing"; exit 1 }
           Stop-Process -Id $p.Id -Force
           if ($meta.total_crimes -lt 1000) { Write-Error "implausibly few crimes"; exit 1 }
           if ($region.clusters.Count -lt 5) { Write-Error "dashboard clusters missing"; exit 1 }
@@ -105,8 +107,10 @@ jobs:
           meta=$(curl -s http://127.0.0.1:8123/api/meta)
           crimes=$(echo "$meta" | python3 -c "import json,sys; print(json.load(sys.stdin)['total_crimes'])")
           clusters=$(curl -s http://127.0.0.1:8123/api/region/lad/E09000007 | python3 -c "import json,sys; print(len(json.load(sys.stdin)['clusters']))")
-          echo "total crimes: $crimes, Camden clusters: $clusters"
+          refresh_ok=$(curl -s http://127.0.0.1:8123/api/refresh/status | python3 -c "import json,sys; print(json.load(sys.stdin)['refresh_supported'])")
+          echo "total crimes: $crimes, Camden clusters: $clusters, refresh: $refresh_ok"
           kill $PID
+          [ "$refresh_ok" = "True" ] || { echo "in-app updater missing"; exit 1; }
           [ "$crimes" -ge 1000 ] || { echo "implausibly few crimes"; exit 1; }
           [ "$clusters" -ge 5 ] || { echo "dashboard clusters missing"; exit 1; }
 

@@ -11,6 +11,9 @@ hiddenimports = [
     "uvicorn.protocols.http.h11_impl",
     "uvicorn.protocols.websockets.auto",
     "uvicorn.lifespan.on",
+    # in-app data updater: worker mode runs the full pipeline (pulls in
+    # httpx, shapely/numpy, openpyxl transitively)
+    "pipeline.run_all",
 ]
 if sys.platform in ("win32", "darwin"):
     hiddenimports.append("webview")  # GUI path; hooks pull in WebView2 / WKWebView glue

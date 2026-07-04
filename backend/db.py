@@ -27,15 +27,22 @@ def conn() -> duckdb.DuckDBPyConnection:
                 entry[1].close()
             except Exception:
                 pass
-        if not config.DB_PATH.exists():
-            raise RuntimeError(f"{config.DB_PATH} missing - run `make mini` or `make all` first")
-        _local.entry = (_generation, duckdb.connect(str(config.DB_PATH), read_only=True))
+        path = config.active_db_path()  # user-dir copy beats bundled DB when frozen
+        if not path.exists():
+            raise RuntimeError(f"{path} missing - run `make mini` or `make all` first")
+        _local.entry = (_generation, duckdb.connect(str(path), read_only=True))
     return _local.entry[1]
 
 
 def swap_database(new_path) -> None:
-    """Atomically replace the served database with a freshly built one."""
+    """Atomically replace the served database with a freshly built one.
+
+    Always lands on DB_PATH (the writable per-user location when frozen); the
+    generation bump makes threads re-resolve, migrating serving off the
+    bundled copy on a desktop app's first update.
+    """
     global _generation
+    config.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     os.replace(new_path, config.DB_PATH)
     _generation += 1
     from . import queries

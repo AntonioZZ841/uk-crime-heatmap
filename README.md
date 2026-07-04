@@ -28,11 +28,14 @@ make serve
 ```
 
 Rebuilding the database from the command line requires the server to be stopped
-(single-writer rule). The web app also has an **Update data** button in the legend:
-when police.uk publishes a new month it rebuilds the database in the background
-(~15–25 min) into a separate file and hot-swaps it without stopping the server —
-if the rebuild fails, the current data keeps serving. The desktop apps don't
-include the updater; they get fresh data with each release.
+(single-writer rule). The app (web **and** desktop) also has an **Update data**
+button in the legend: when police.uk publishes a new month it rebuilds the
+database in the background (~15–25 min) into a separate file and hot-swaps it
+without interrupting the running app — a popup then offers to refresh the
+interface to the new version. If the rebuild fails, the current data keeps
+serving. Desktop apps store updated data in a per-user directory
+(`%LOCALAPPDATA%\uk-crime-heatmap` on Windows, `~/Library/Application Support/uk-crime-heatmap`
+on macOS); delete it to revert to the dataset bundled with the app.
 
 ## Desktop app (Windows & macOS)
 

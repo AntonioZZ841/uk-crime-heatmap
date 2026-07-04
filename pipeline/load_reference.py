@@ -12,7 +12,7 @@ import re
 import duckdb
 from openpyxl import load_workbook
 
-import config
+from . import config
 
 LSOA_CODE_RE = re.compile(r"^[EW]01\d{6}$")
 LAD_CODE_RE = re.compile(r"^(E0[6789]|W06|N09|S12)\d{6}$")

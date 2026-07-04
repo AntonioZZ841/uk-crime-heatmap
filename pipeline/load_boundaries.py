@@ -10,7 +10,7 @@ import json
 import duckdb
 from shapely.geometry import shape
 
-import config
+from . import config
 
 
 def iter_rows():

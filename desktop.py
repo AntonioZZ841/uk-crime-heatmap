@@ -23,11 +23,20 @@ if getattr(sys, "frozen", False):
     os.environ["CRIME_RATE_ROOT"] = str(Path(sys._MEIPASS))
     # Windowed (console=False) builds have no stdout/stderr; any print() or
     # logging StreamHandler would crash with AttributeError on None. Route to
-    # devnull BEFORE uvicorn builds its logging handlers.
+    # devnull BEFORE uvicorn builds its logging handlers. (In worker mode the
+    # parent gives us a real stdout pipe, so this guard is a no-op there.)
     if sys.stdout is None:
         sys.stdout = open(os.devnull, "w")
     if sys.stderr is None:
         sys.stderr = open(os.devnull, "w")
+
+if "--run-pipeline" in sys.argv:
+    # Worker mode: the in-app updater re-invokes this same executable to run
+    # the data pipeline as a subprocess (CRIME_DB_PATH/MINI_MODE via env).
+    from pipeline.run_all import main as pipeline_main
+
+    pipeline_main()
+    sys.exit(0)
 
 import uvicorn
 

@@ -42,8 +42,11 @@ App.initRefresh = async function (meta) {
     } else if (job.state === "done" && polling) {
       clearInterval(polling);
       polling = null;
-      render(`<span class="refresh-note">Updated ✓ reloading…</span>`);
-      setTimeout(() => location.reload(), 1200);
+      const version = (s.update && s.update.current) || "the latest data";
+      render(`<span class="refresh-note">Update ready</span>
+        <button class="refresh-btn" id="refresh-apply">Refresh to apply</button>`);
+      document.getElementById("refresh-apply").onclick = () => location.reload();
+      showDonePopup(version);
     } else if (job.state === "error" && polling) {
       clearInterval(polling);
       polling = null;
@@ -69,6 +72,26 @@ App.initRefresh = async function (meta) {
         new data.</span> <button class="refresh-btn" id="refresh-any">Update anyway</button>`);
       document.getElementById("refresh-any").onclick = startUpdate;
     }
+  }
+
+  function showDonePopup(version) {
+    document.getElementById("update-modal")?.remove();
+    const overlay = document.createElement("div");
+    overlay.id = "update-modal";
+    overlay.innerHTML = `
+      <div class="update-card">
+        <h3>Data updated ✓</h3>
+        <p>The crime database has been updated to <b>${esc(version)}</b>.
+           Refresh the interface to load the new version.</p>
+        <div class="update-actions">
+          <button class="refresh-btn primary" id="update-reload">Refresh now</button>
+          <button class="refresh-btn" id="update-later">Later</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector("#update-reload").onclick = () => location.reload();
+    overlay.querySelector("#update-later").onclick = () => overlay.remove();
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
   }
 
   async function startUpdate() {

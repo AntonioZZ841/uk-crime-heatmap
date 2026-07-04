@@ -15,7 +15,7 @@ import shapely
 from shapely.geometry import shape
 from shapely.strtree import STRtree
 
-import config
+from . import config
 
 
 def run(con: duckdb.DuckDBPyConnection) -> None:

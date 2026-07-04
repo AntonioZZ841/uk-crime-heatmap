@@ -74,14 +74,22 @@ def _run(mini: bool) -> None:
     import os
 
     try:
+        NEW_DB.parent.mkdir(parents=True, exist_ok=True)
         for stale in (NEW_DB, NEW_DB.with_suffix(NEW_DB.suffix + ".wal")):
             stale.unlink(missing_ok=True)
 
-        env = {**os.environ, "CRIME_DB_PATH": str(NEW_DB)}
+        # PYTHONUNBUFFERED: line-buffered pipe so step progress arrives live
+        env = {**os.environ, "CRIME_DB_PATH": str(NEW_DB), "PYTHONUNBUFFERED": "1"}
         if mini:
             env["MINI_MODE"] = "1"
+        # Frozen: re-invoke the app's own exe in worker mode (desktop.py handles
+        # --run-pipeline); dev: run the pipeline package with the venv python.
+        if getattr(sys, "frozen", False):
+            cmd = [sys.executable, "--run-pipeline"]
+        else:
+            cmd = [sys.executable, "-m", "pipeline.run_all"]
         proc = subprocess.Popen(
-            [sys.executable, "pipeline/run_all.py"],
+            cmd,
             cwd=str(config.PROJECT_ROOT),
             env=env,
             stdout=subprocess.PIPE,

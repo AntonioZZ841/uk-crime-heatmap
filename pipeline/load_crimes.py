@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import duckdb
 
-import config
+from . import config
 
 CSV_COLUMNS = """{
     'Crime ID': 'VARCHAR', 'Month': 'VARCHAR', 'Reported by': 'VARCHAR',
