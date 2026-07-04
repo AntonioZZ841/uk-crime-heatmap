@@ -16,6 +16,12 @@ from . import db
 LEVEL_COLUMN = {"lad": "lad25cd", "ward": "wd25cd", "lsoa": "lsoa21cd"}
 
 
+def clear_caches() -> None:
+    """Drop all cached query results - called after a database hot-swap."""
+    for fn in (runtime_window, meta, choropleth, region_detail):
+        fn.cache_clear()
+
+
 class BadRequest(ValueError):
     pass
 

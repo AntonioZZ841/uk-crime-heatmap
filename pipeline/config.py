@@ -17,7 +17,9 @@ DATA_DIR = PROJECT_ROOT / "data"
 RAW_DIR = DATA_DIR / "raw"
 CSV_DIR = RAW_DIR / "csv"          # extracted street CSVs, one subdir per month
 BOUNDARY_DIR = RAW_DIR / "boundaries"
-DB_PATH = DATA_DIR / "crime.duckdb"
+# CRIME_DB_PATH lets the refresh job build into a separate file while the
+# server keeps serving the current one (DuckDB is single-writer).
+DB_PATH = Path(os.environ.get("CRIME_DB_PATH") or (DATA_DIR / "crime.duckdb"))
 WINDOW_FILE = RAW_DIR / "window.json"  # pinned month window so all stages agree
 
 # ---------------------------------------------------------------------------

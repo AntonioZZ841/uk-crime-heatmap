@@ -49,6 +49,16 @@ body { color: var(--ink); }
   color: var(--muted); }
 #legend .opacity-row input { flex: 1; accent-color: var(--accent); margin: 0; }
 #legend .opacity-row span { min-width: 28px; text-align: right; }
+#legend .refresh-row { display: flex; align-items: center; gap: 6px; margin-top: 7px;
+  padding-top: 7px; border-top: 1px solid var(--line); min-height: 20px; }
+.refresh-btn { border: 1px solid var(--line); background: #f7fafc; border-radius: 6px;
+  font-size: 11px; padding: 2px 9px; cursor: pointer; color: var(--accent); }
+.refresh-btn:hover { background: #eef4fa; }
+.refresh-note { color: var(--muted); font-size: 10.5px; }
+.refresh-err { color: var(--danger); font-size: 10.5px; }
+.spin { width: 11px; height: 11px; border: 2px solid var(--line); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 0.9s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
 #legend .caveat { margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.35; }
 
 /* ---------- status / boot error ---------- */

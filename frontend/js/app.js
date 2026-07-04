@@ -12,6 +12,7 @@
   }
   App.meta = meta;
   App.initLegend(meta);
+  App.initRefresh(meta);
   App.mapApi = App.initMap(meta);
   App.map = App.mapApi.map;
 

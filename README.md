@@ -27,7 +27,12 @@ make all
 make serve
 ```
 
-Rebuilding the database requires the server to be stopped (single-writer rule).
+Rebuilding the database from the command line requires the server to be stopped
+(single-writer rule). The web app also has an **Update data** button in the legend:
+when police.uk publishes a new month it rebuilds the database in the background
+(~15–25 min) into a separate file and hot-swaps it without stopping the server —
+if the rebuild fails, the current data keeps serving. The desktop apps don't
+include the updater; they get fresh data with each release.
 
 ## Desktop app (Windows & macOS)
 
