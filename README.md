@@ -46,10 +46,10 @@ basemap tiles):
 
 - **Windows**: `uk-crime-heatmap-windows-x64.zip` → run `uk-crime-heatmap/uk-crime-heatmap.exe`.
   Past the SmartScreen warning: *More info → Run anyway* (unsigned binary).
-- **macOS** (Apple Silicon, macOS 12+): `uk-crime-heatmap-macos-arm64.zip` →
-  `UK Crime Heatmap.app`. First launch is Gatekeeper-blocked (unsigned): right-click →
-  Open, or **System Settings → Privacy & Security → "Open Anyway"**, or
-  `xattr -cr "UK Crime Heatmap.app"`. Intel Macs aren't covered by this build.
+- **macOS** (macOS 12+): `uk-crime-heatmap-macos-arm64.zip` for Apple Silicon (M1+),
+  `uk-crime-heatmap-macos-x64.zip` for Intel Macs → `UK Crime Heatmap.app`. First launch
+  is Gatekeeper-blocked (unsigned): right-click → Open, or **System Settings →
+  Privacy & Security → "Open Anyway"**, or `xattr -cr "UK Crime Heatmap.app"`.
 
 Releases are built by CI on every `v*` tag ([workflow](.github/workflows/release.yml)):
 the dataset is built once from source on Linux, then Windows/macOS apps are frozen in

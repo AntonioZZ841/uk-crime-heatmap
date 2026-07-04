@@ -47,6 +47,10 @@ jobs:
           - os: macos-latest
             asset: uk-crime-heatmap-macos-arm64.zip
             exe: "dist/UK Crime Heatmap.app/Contents/MacOS/uk-crime-heatmap"
+          # GitHub's Intel (x86_64) macOS label — macos-latest is Apple Silicon only
+          - os: macos-15-intel
+            asset: uk-crime-heatmap-macos-x64.zip
+            exe: "dist/UK Crime Heatmap.app/Contents/MacOS/uk-crime-heatmap"
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
@@ -147,12 +151,13 @@ jobs:
             *More info → Run anyway*. Needs the Edge WebView2 Runtime (preinstalled on
             up-to-date Windows 10/11).
 
-            **macOS (Apple Silicon, macOS 12+)** — unzip `uk-crime-heatmap-macos-arm64.zip`,
-            move `UK Crime Heatmap.app` wherever you like. The app is unsigned, so the
+            **macOS (macOS 12+)** — pick the zip for your chip (Apple menu → About This
+            Mac): `uk-crime-heatmap-macos-arm64.zip` for Apple Silicon (M1 or later),
+            `uk-crime-heatmap-macos-x64.zip` for Intel. Unzip and move
+            `UK Crime Heatmap.app` wherever you like. The app is unsigned, so the
             first launch is blocked: either right-click → Open, or if that's refused go to
             **System Settings → Privacy & Security → "Open Anyway"** (or run
-            `xattr -cr "UK Crime Heatmap.app"` once). Intel Macs are not supported by
-            this build.
+            `xattr -cr "UK Crime Heatmap.app"` once).
 
             Both apps bundle the full 12-month crime database; internet is only needed
             for the basemap tiles.
